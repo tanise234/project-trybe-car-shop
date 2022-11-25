@@ -1,4 +1,6 @@
+import { isValidObjectId } from 'mongoose';
 import Car from '../Domains/Car';
+import Exception from '../Exception';
 import ICar from '../Interfaces/ICar';
 import CarODM from '../Models/CarODM';
 
@@ -17,10 +19,20 @@ export default class CarService {
   } 
 
   public async create(car: ICar) {
-    // if (await carService.getByValue(car.id)) {
     const newCar = await this.carODM.create(car);
     return this.createCarDomain(newCar);
-    // }
-    // throw new Error('Key not found');
+  }
+
+  public async getAll() {
+    const cars = await this.carODM.getAll();
+    return cars.map((car) => this.createCarDomain(car));
+  }
+
+  public async getById(id: string) {
+    if (!isValidObjectId(id)) throw new Exception(422, 'Invalid mongo id');
+
+    const car = await this.carODM.getById(id);
+    if (!car) throw new Exception(404, 'Car not found');
+    return this.createCarDomain(car);
   }
 }
