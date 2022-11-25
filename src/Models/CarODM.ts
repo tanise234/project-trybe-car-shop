@@ -1,4 +1,5 @@
-import { Model, Schema, model, models } from 'mongoose';
+import { Model, Schema, model, models, isValidObjectId } from 'mongoose';
+import Exception from '../Exception';
 import ICar from '../Interfaces/ICar';
 
 export default class CarODM {
@@ -18,6 +19,10 @@ export default class CarODM {
     this.model = models.Car || model('Car', this.schema);
   }
 
+  private validateId(id: string) {
+    if (!isValidObjectId(id)) throw new Exception(422, 'Invalid mongo id');
+  }
+
   public async create(car: ICar): Promise<ICar> {
     return this.model.create({ ...car });
   }
@@ -27,6 +32,12 @@ export default class CarODM {
   }
 
   public async getById(id: string): Promise<ICar | null> {
+    this.validateId(id);
     return this.model.findById(id);
+  }
+
+  public async updateById(id: string, info: Partial<ICar>): Promise<ICar | null> {
+    this.validateId(id);
+    return this.model.findByIdAndUpdate({ _id: id }, { ...info }, { new: true });
   }
 }
